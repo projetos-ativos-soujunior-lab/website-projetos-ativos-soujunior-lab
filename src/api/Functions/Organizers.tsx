@@ -10,57 +10,29 @@ console.log("Error get Api", e);
   }
 }
 
-// Puxando todos os repositorios com tópico soujunior-lab
-const getAllListRepositeries = async () => {
+const getAllRepositores = async () => {
   try {
-      const data = await getApi('https://api.github.com/search/repositories?q=topic:soujunior-lab');
-      return data.items
-      
-  } catch (e) {
-      console.log("Error get repositories", e);
-  }
-}
-
-// Puxando o nome de todos as organizações
-const getOrgs = async () => {
-  try {
-    const allRepositories = await getAllListRepositeries()
-    const mapReturnLogin = allRepositories.map((item:any) => item.owner.login);
-    return mapReturnLogin;
-      
-  } catch (e) {
-      console.log("Error get Login repositories", e);
-  }
-}
-
-// Puxando os repositorios de acordo com o nome da organização.
-// Dados Encontrados: Description
-const getDateOrgs = async (nameProject:string) => {
-  try {
-    const data = getApi(`https://api.github.com/orgs/${nameProject}`)
+      const data = getApi(`https://api.github.com/orgs/SouJunior-Lab/repos`)
       return data
-      
   } catch (e) {
-      console.log("Error get date of organizations", e);
+      console.log("Error getting repositores of SouJunior-Lab", e);
   }
 }
 
-// Puxando os repositorios de acordo com o nome da organização.
-// Dados Encontrados: 
-const getRepositoresOrgs = async (nameProject:string) => {
+const getSearchRepositories = async (project:string) => {
   try {
-      const data = getApi(`https://api.github.com/orgs/${nameProject}/repos`)
-      return data
-      
+      const reponse = await getAllRepositores();
+      const data = reponse.filter((item:any) => item.name === project);
+      return data;
   } catch (e) {
-      console.log("Error getting repositores of organizations", e);
+      console.log("Error getting repositores of SouJunior-Lab", e);
   }
 }
 
 // Puxando as linguagens de todos os repositorios da organização solicitada.
-const getAllLanguageRepositores = async (nameProject:string) => {
+const getAllLanguageOrganizates = async (nameProject:string) => {
   try {
-      const data = await getRepositoresOrgs(nameProject);
+      const data = await getSearchRepositories(nameProject);
       const linkLanguageRepositories = data.map((link:any) => link.languages_url);
       const allLanguage = await Promise.all(linkLanguageRepositories.map(async(item:string) => {
        const objectLanguage = await getApi(item);
@@ -78,13 +50,24 @@ const getAllLanguageRepositores = async (nameProject:string) => {
   }
 }
 
-// Puxando todos os organizadores da organização passada como parâmetro
-const getListMemberOrgs = async (nameProject:string) => {
+// Puxando todos os dados da Organização.
+const getDateOrgs = async (nameProject:string) => {
   try {
-      const response =
-          await fetch(`https://api.github.com/orgs/${nameProject}/public_members`);
-        const data = await response.json();
-      return data
+    const response = await getSearchRepositories(nameProject);
+      const [nameRepository] = response.map((item:any) => item.url);
+      const getApiOrg = await getApi(nameRepository);
+      return getApiOrg.parent;
+  } catch (e) {
+      console.log("Error get date of organizations", e);
+  }
+}
+
+const getListMembersOrgs = async (nameProject:string) => {
+  try {
+      const response = await getDateOrgs(nameProject);
+      const nameOrg = await response.owner.login;
+      const members = await getApi(`https://api.github.com/orgs/${nameOrg}/members`);
+      return members
   } catch (e) {
       console.log("Error getting members of organizations", e);
   }
@@ -93,7 +76,7 @@ const getListMemberOrgs = async (nameProject:string) => {
 // Acessando os dados de cada usuário da organização. Retorna um array de dados de cada usuário
 const getLoginMembers = async (nameProject:string):Promise<any> => {
   try {
-      const members = await getListMemberOrgs(nameProject); 
+      const members = await getListMembersOrgs(nameProject); 
       const url = await members.map((item:any) => item.url);
       const responses = await Promise.all(url.map(async (github:any) => await fetch(github)));
       const data = await Promise.all(responses.map(async (item:any) => await item.json()));
@@ -106,7 +89,7 @@ const getLoginMembers = async (nameProject:string):Promise<any> => {
 
 // Conjunto de dados para desenvolvimento no front-end
 const getAllDates = async (nameRepositori:string) =>{
-  const languages = await getAllLanguageRepositores(nameRepositori);
+  const languages = await getAllLanguageOrganizates(nameRepositori);
   const allMembers = await getLoginMembers(nameRepositori);
   const members = await allMembers.map((item:any) => {
     return {
@@ -114,7 +97,7 @@ const getAllDates = async (nameRepositori:string) =>{
     gitHub: item.html_url
   }
   });
-  const descriptionOrgs = await getDateOrgs(nameRepositori);
+  const descriptionOrgs = await getSearchRepositories(nameRepositori);
   const allDate = {
     languages: languages,
     members: members,
@@ -125,12 +108,11 @@ return allDate;
 } 
 
 export{
-  getAllListRepositeries,
-  getOrgs,
-  getListMemberOrgs,
+  getListMembersOrgs,
   getLoginMembers,
-  getRepositoresOrgs,
   getDateOrgs,
-  getAllLanguageRepositores,
-  getAllDates
+  getAllLanguageOrganizates,
+  getAllDates,
+  getAllRepositores,
+  getSearchRepositories
 }
