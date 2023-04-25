@@ -10,7 +10,7 @@ console.log("Error get Api", e);
   }
 }
 
-const getAllRepositores = async () => {
+const getAllRepositories = async () => {
   try {
       const data = getApi(`https://api.github.com/orgs/SouJunior-Lab/repos`)
       return data
@@ -21,7 +21,7 @@ const getAllRepositores = async () => {
 
 const getSearchRepositories = async (project:string) => {
   try {
-      const reponse = await getAllRepositores();
+      const reponse = await getAllRepositories();
       const data = reponse.filter((item:any) => item.name === project);
       return data;
   } catch (e) {
@@ -113,6 +113,6 @@ export{
   getDateOrgs,
   getAllLanguageOrganizates,
   getAllDates,
-  getAllRepositores,
+  getAllRepositories,
   getSearchRepositories
 }
