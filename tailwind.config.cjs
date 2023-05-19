@@ -10,7 +10,8 @@ module.exports = {
         bgPrimary: '#041933',
         grey: '#BDBDBD',
         blueGrid: '#1165BA',
-        bgLinguages: '#041933'
+        bgLanguages: '#041833',
+        bgTeam: '#072954'
       },
       fontFamily: {
         poppins: ['Poppins']
