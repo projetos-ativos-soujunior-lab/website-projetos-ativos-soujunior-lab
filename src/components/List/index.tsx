@@ -1,17 +1,18 @@
-import { useEffect, useState } from "react"
-import externalLink from "../assets/externalLink.svg"
-import upArrow from '../assets/upArrow.svg'
-import downArrow from '../assets/downArrow.svg'
-import github from '../assets/githubIcon.svg'
-import linkedin from '../assets/linkedin.svg'
+import { useEffect, useRef, useState } from "react"
+import externalLink from "../../assets/externalLink.svg"
+import upArrow from '../../assets/upArrow.svg'
+import downArrow from '../../assets/downArrow.svg'
+import github from '../../assets/githubIcon.svg'
+import linkedin from '../../assets/linkedin.svg'
+import circle from '../../assets/circle.svg'
 import axios from "axios"
 
-interface Props {
+interface ProjectsProps {
   url: string
   name: string
-  languages: []
+  technologies: []
   index: number
-  item: Props
+  item: number
   description: string
   members: [{
     name: string
@@ -22,17 +23,19 @@ interface Props {
 
 export function List() {
   
-  const [projects, setProjects] = useState<Props[]>([])
+  const [filteredprojects, setFilteredProjects] = useState<ProjectsProps[]>([])
+  const projects = useRef<ProjectsProps[]>([])
   const [showInfo, setShowInfo] = useState<boolean[]>([])
   
   const getProjects = async () => {
     try {
       const response = await axios.get(
-        'http://localhost:5002',
+        'http://localhost:5000/api/v1/projects',
       )
       const projectlist = response.data
       console.log(projectlist)
-      setProjects(projectlist)
+      setFilteredProjects(projectlist)
+      projects.current = projectlist
     } catch (error) {
       console.log(error)
     }
@@ -51,11 +54,24 @@ export function List() {
       })
     }
   } 
-  
+
+  const Search = (typed: string) => {
+    const filteredProjects = projects.current.filter(project => 
+      project.name.toLowerCase().includes(typed.toLowerCase())
+    );
+    setFilteredProjects(filteredProjects);
+  }
+
   return (
+    <div>
+      <input
+        className="text-grey font-poppins font-normal mx-auto mt-14 flex text-left px-2 py-2 rounded-2xl xl:w-[1150px] w-[90%]"
+        type="search"
+        onChange={(event) => Search(event.target.value)}
+      />
     <div className="flex justify-center w-[90%] m-auto max-sm:mx-auto">
       <div>
-        {projects.map((item: Props, index) => (
+        {filteredprojects.map((item, index) => (
           <div key={index} className={`bg-blueGrid my-12 xl:w-[1150px]  
           ${showInfo[index] ? "rounded-t-lg" : "rounded-lg"}`}>
             <div className="flex justify-between mx-12 max-sm:mx-5 items-center">          
@@ -64,13 +80,14 @@ export function List() {
                   <div className="flex mt-10">
                     <h2 className="font-semibold text-5xl max-sm:text-xl">
                       {item.name
-                        .replace("-soujunior-lab", "")  
+                        .replace("-soujunior-lab", "")
                         .replace(/([a-z])([A-Z])/g, "$1 $2")
                         .replace(/^./, (str) => str.toUpperCase())
                         .replace(/-(.)/g, (i) => ` ${i.toUpperCase()}`)
                         .replace(/-/g, " ")
-                        .slice(0, 28)
-                        .trim() + (item.name.replace("-soujunior-lab", "").length > 28 ? "..." : "")
+                        .replace(window.innerWidth < 330 ? /\b(\w{10,})\b/g : "", (match) => match.slice(0, 10) + " " + match.slice(10))
+                        .slice(0, window.innerWidth < 330 ? 20 : 28)
+                        .trim() + (item.name.replace("-soujunior-lab", "").length > (window.innerWidth < 330 ? 20 : 28) ? "..." : "")
                       }
                     </h2>
                     <a 
@@ -85,16 +102,16 @@ export function List() {
                   </div>
                 </div>
                 <div className="flex">
-                  {item.languages.length === 0 ? (
+                  {item.technologies.length === 0 ? (
                     <p className="mt-20"></p>
                   ) : (
                     <div className="flex flex-wrap mb-10 mt-7 max-sm:mt-2">
-                      {item.languages.map(language => (
+                      {item.technologies.map(technology => (
                         <p
-                          key={language}
+                          key={technology}
                           className="m-1 px-10 max-sm:px-1 py-3 max-sm:py-1 bg-bgLanguages font-medium text-xl max-sm:text-base rounded-md"
                         >
-                          {language}
+                          {technology}
                         </p>
                       ))}
                     </div>
@@ -150,8 +167,35 @@ export function List() {
               }
             </div>
           </div>
-        ))}
-      </div>        
+        ))} 
+        {
+          <div className="sm:text-xl text-sm font-medium max-lg:mx-16 max-md:mx-8 mt-10 text-gray-500 flex justify-center text-center m-auto">
+            {projects.current.length > 0 ?
+              <>
+              {filteredprojects.length > 0 ?
+                <></>
+                :
+                <p>
+                  A sua pesquisa não encontrou nenhum projeto.
+                </p>
+              }
+              </>
+              : 
+              <>
+                <p className="my-auto">
+                  Carregando os projetos
+                </p>
+                <img
+                  className="ml-2 animate-spin" 
+                  src={circle} 
+                  alt="Loader"
+                /> 
+              </> 
+            }
+          </div>
+        }
+      </div>
+    </div>
     </div>
   )
 }
