@@ -56,10 +56,19 @@ export function List() {
   } 
 
   const Search = (typed: string) => {
-    const filteredProjects = projects.current.filter(project => 
-      project.name.toLowerCase().includes(typed.toLowerCase())
-    );
-    setFilteredProjects(filteredProjects);
+    const filteredProjects = projects.current.filter(project => {
+      const projectName = project.name.toLowerCase().replace(/\s/g, '')
+      const memberNames = project.members.map((member: { name: string }) => member.name.toLowerCase().replace(/\s/g, ''))
+      const projectTechnologies = project.technologies.map((tech: string) => tech.toLowerCase().replace(/\s/g, ''))
+      const typedLowerCase = typed.toLowerCase().replace(/\s/g, '')
+      return (
+        projectName.includes(typedLowerCase) ||
+        memberNames.some(memberName => memberName.includes(typedLowerCase)) ||
+        projectTechnologies.some(tech => tech.includes(typedLowerCase))
+      )
+    })
+  
+    setFilteredProjects(filteredProjects)
   }
 
   return (
@@ -148,7 +157,6 @@ export function List() {
                             ? member.name.replace(/(\b\w{10})(\w*)\b/g, '$1...')
                             : member.name}
                           </p>
-                          <p className="text-sm max-sm:text-xs">employee role</p>
                         </div>
                         <div className="flex flex-row justify-center my-auto ml-2">
                           <a className="mr-2 w-7 max-sm:w-5" href={member.github} target="_blank">
