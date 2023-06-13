@@ -26,14 +26,14 @@ export function List() {
   const [filteredprojects, setFilteredProjects] = useState<ProjectsProps[]>([])
   const projects = useRef<ProjectsProps[]>([])
   const [showInfo, setShowInfo] = useState<boolean[]>([])
+  const [placeholder, setPlaceholder] = useState("")
   
   const getProjects = async () => {
     try {
       const response = await axios.get(
-        'http://localhost:5000/api/v1/projects',
+        'https://projetos-ativos.natanaelsc.xyz/api/v1/projects',
       )
       const projectlist = response.data
-      console.log(projectlist)
       setFilteredProjects(projectlist)
       projects.current = projectlist
     } catch (error) {
@@ -71,11 +71,30 @@ export function List() {
     setFilteredProjects(filteredProjects)
   }
 
+  useEffect(() => {
+    const setScreenSizeToPlaceholder = () => {
+      setPlaceholder(
+        window.innerWidth <= 540
+          ? "Busque aqui..."
+          : "Busque pelo nome do projeto, participante ou framework..."
+      )
+    }
+
+    setScreenSizeToPlaceholder()
+    window.addEventListener("resize", setScreenSizeToPlaceholder)
+
+    return () => {
+      window.removeEventListener("resize", setScreenSizeToPlaceholder)
+    }
+
+  }, [])
+
   return (
     <div>
       <input
         className="text-grey font-poppins font-normal mx-auto mt-14 flex text-left px-2 py-2 rounded-2xl xl:w-[1150px] w-[90%]"
         type="search"
+        placeholder={placeholder}
         onChange={(event) => Search(event.target.value)}
       />
     <div className="flex justify-center w-[90%] m-auto max-sm:mx-auto">
@@ -137,7 +156,7 @@ export function List() {
               </div>
             </div>
             <div className="flex flex-wrap bg-bgPrimary">
-              {showInfo[index] && 
+              {showInfo[index] &&
               <div className=" flex flex-col justify-center  border border-blueGrid w-full">
                 <div className="my-5 mx-14 max-sm:my-4 max-sm:mx-7">
                   <p className="max-sm:text-sm"><strong>Descrição do projeto: </strong>{item.description}</p>
