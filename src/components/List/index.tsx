@@ -181,7 +181,7 @@ export function List() {
                           <a className="mr-2 w-7 max-sm:w-5" href={member.github} target="_blank">
                             <img src={github} alt="GitHub icon" />
                           </a>
-                          <a className="w-7 max-sm:w-5" href={member.linkedin} target="_blank">
+                          <a className="w-7 max-sm:w-5" href={member.linkedin.length === 0 ? undefined : member.linkedin} target="_blank">
                             <img src={linkedin} alt="Linkedin icon" />
                           </a>
                         </div>
