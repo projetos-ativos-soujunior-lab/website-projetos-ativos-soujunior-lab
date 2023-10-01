@@ -5,7 +5,7 @@ import downArrow from '../../assets/downArrow.svg'
 import github from '../../assets/githubIcon.svg'
 import linkedin from '../../assets/linkedin.svg'
 import circle from '../../assets/circle.svg'
-import axios from "axios"
+import { api } from "../../lib/axios"
 
 interface ProjectsProps {
   url: string
@@ -30,9 +30,7 @@ export function List() {
   
   const getProjects = async () => {
     try {
-      const response = await axios.get(
-        'https://projetos-ativos.natanaelsc.xyz/api/v1/projects',
-      )
+      const response = await api.get("")
       const projectlist = response.data
       setFilteredProjects(projectlist)
       projects.current = projectlist
